@@ -12,11 +12,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.taobao.api.ApiException;
-import com.taobao.api.DefaultTaobaoClient;
-import com.taobao.api.TaobaoClient;
-import com.taobao.api.request.AlibabaAliqinFcSmsNumSendRequest;
-import com.taobao.api.response.AlibabaAliqinFcSmsNumSendResponse;
+
 
 import cn.itcast.bos.dao.bc.DecidedZoneDAO;
 import cn.itcast.bos.dao.bc.RegionDAO;
@@ -174,28 +170,7 @@ public class NoticeBillServiceImpl extends BaseService implements NoticeBillServ
 		
 		//发送短信的代码在下面
 	}
-	
-	//发短信
-	public static void main(String[] args) {
-		//发送短信
-		try {
-			//参数1：短信接口url
-			//参数2：应用的key
-			//参数3：安全码
-			TaobaoClient client = new DefaultTaobaoClient("https://eco.taobao.com/router/rest", "23695203", "52c48e18476415d10e3273e8313c3250");
-			AlibabaAliqinFcSmsNumSendRequest req = new AlibabaAliqinFcSmsNumSendRequest();
-			req.setExtend( "" );
-			req.setSmsType( "normal" );
-			req.setSmsFreeSignName( "波波老师" );//签名
-			req.setSmsParamString( "{'name':'Rose','time':'2017-01-01'}" );//参数
-			req.setRecNum( "18516566511" );
-			req.setSmsTemplateCode( "SMS_50750022" );
-			AlibabaAliqinFcSmsNumSendResponse rsp = client.execute(req);
-			System.out.println(rsp.getBody());
-		} catch (ApiException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		}
-	}
+
+
 
 }

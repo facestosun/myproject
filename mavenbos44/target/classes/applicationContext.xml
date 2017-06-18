@@ -1,0 +1,168 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:jpa="http://www.springframework.org/schema/data/jpa"
+	xmlns:cache="http://www.springframework.org/schema/cache"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans 
+	http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/context
+	http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop
+	http://www.springframework.org/schema/aop/spring-aop.xsd
+	http://www.springframework.org/schema/tx 
+	http://www.springframework.org/schema/tx/spring-tx.xsd
+	http://www.springframework.org/schema/data/jpa
+ 	http://www.springframework.org/schema/data/jpa/spring-jpa.xsd
+ 	http://www.springframework.org/schema/cache 
+	http://www.springframework.org/schema/cache/spring-cache.xsd">
+	<!-- 引入外部属性文件 -->
+	<context:property-placeholder location="classpath:db.properties" />
+
+	<!-- 连接池 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="driverClass" value="${jdbc.driver}" />
+		<property name="jdbcUrl" value="${jdbc.url}" />
+		<property name="user" value="${jdbc.user}" />
+		<property name="password" value="${jdbc.password}" />
+	</bean>
+	
+	<!-- spring整合jpa ：entityManagerFactory-->
+	<!-- 实体管理工厂 -->
+	<bean id="entityManagerFactory" class="org.springframework.orm.jpa.LocalContainerEntityManagerFactoryBean">
+		<!-- 1。数据源 -->
+		<property name="dataSource" ref="dataSource" />
+		<!-- 2。扫描实体类：包含子包 -->
+		<property name="packagesToScan" value="cn.itcast.bos.domain" />
+		<!-- 3。JPA供应商适配：数据库和方言 -->
+		<property name="jpaVendorAdapter">
+			<bean class="org.springframework.orm.jpa.vendor.HibernateJpaVendorAdapter">
+				<!-- 数据库类型配置 -->
+				<property name="database" value="ORACLE" />
+				<!-- 是否自动生成DDL建表 -->
+				<property name="generateDdl" value="true" />
+				<!-- 配置dialect方言 -->
+				<property name="databasePlatform" value="org.hibernate.dialect.Oracle10gDialect"/>
+				<!-- 打印sql -->
+				<property name="showSql" value="true"/>
+			</bean>
+		</property>
+		<!-- 配置hibernate的其他属性 -->
+		<property name="jpaProperties">
+			<props>
+				<prop key="hibernate.format_sql">true</prop>
+				<!-- 索引文件存放的目录 -->
+				<prop key="hibernate.search.default.indexBase">e:/index44</prop>
+			</props>
+			
+		</property>
+	</bean>
+	
+	<!-- spring平台的事务管理器 -->
+	<bean id="transactionManager" class="org.springframework.orm.jpa.JpaTransactionManager">
+		<property name="entityManagerFactory" ref="entityManagerFactory" />
+	</bean>
+	<!-- 注解驱动 -->
+	<tx:annotation-driven transaction-manager="transactionManager"/>
+	
+	<!-- bean组件扫描 -->
+	<context:component-scan base-package="cn.itcast.bos.service,cn.itcast.bos.web,cn.itcast.bos.auth"/>
+	
+	<!-- 
+	告诉springdatajpa，哪些继承了Repository接口的自定义的接口被管理，会自动为其生成一个实现的bean
+	dao需要被springdata扫描管理 ，包含子包
+	repository-impl-postfix="Impl"实现类后缀
+	-->
+	<jpa:repositories base-package="cn.itcast.bos.dao" />
+	
+	<!-- shiro权限控制过滤器bean -->
+	<bean id="shiroFilter" class="org.apache.shiro.spring.web.ShiroFilterFactoryBean">
+		<!-- shiro 的核心安全接口 -->
+		<property name="securityManager" ref="securityManager" />
+		<!-- 认证：认证失败自动跳转的页面 -->
+		<property name="loginUrl" value="/login.jsp" />
+		<!-- 认证：认证登陆成功后要跳转的页面-->
+		<property name="successUrl" value="/index.jsp" />
+		<!-- 授权：授权失败，跳转到该页面-->
+		<property name="unauthorizedUrl" value="/unauthorized.jsp" />
+		<!-- 配置shiro的过滤器链：url的规则 ，小过滤器会按顺序执行，从上到下执行-->
+		<!-- shiro 连接约束配置（URL级别的权限控制），即URL和filter的关系，URL控制规则：路径=规则名 -->
+		<property name="filterChainDefinitions">
+			<!-- 
+			/login.jsp = anon :无需认证就可以访问该页面
+			/** = authc：代表任何路径以及子路径下的所有文件都需要认证才能访问
+			两点：1）通配符：/**根路径下的所有子路径以及任意文件
+			2）顺序/** = authc必须放到最后，因为，过滤器链执行顺序，只要找到规则了，则不找了。
+			-->
+			<value>
+				/login.jsp = anon
+				/validatecode.jsp = anon
+				/js/** = anon
+				/css/** = anon
+				/images/** = anon
+				/user_login.action* = anon
+				/page_base_staff.action = anon
+				/page_base_region.action = perms["region"]
+				/page_base_subarea.action = roles["weihu"]
+				/page_qupai_noticebill_add.action = perms["noticebill"]
+				/page_qupai_quickworkorder.action = roles["kefu"]
+				/** = authc
+			</value>
+		</property>
+	</bean>
+	<!-- shiro安全管理器 -->
+	<bean id="securityManager" class="org.apache.shiro.web.mgt.DefaultWebSecurityManager">
+		<!-- 注入 Realm连接安全数据-->
+		<property name="realm" ref="bosRealm"></property>
+		<!-- 注入shiro的缓存管理器 -->
+		<property name="cacheManager" ref="shiroCacheManager"/>
+	</bean>
+	
+	<!-- 开启权限控制的注解功能并且配置aop -->
+	<!-- 后处理器：通过动态代理在某bean实例化的前增强。:自己去找权限注解 -->
+	<bean id="lifecycleBeanPostProcessor" class="org.apache.shiro.spring.LifecycleBeanPostProcessor"/>
+	<!-- 切面自动代理：相当于以前的AOP标签配置 
+	advisor:切面 advice:通知
+	-->
+	<bean class="org.springframework.aop.framework.autoproxy.DefaultAdvisorAutoProxyCreator" 
+	depends-on="lifecycleBeanPostProcessor">
+		<!-- 设置aop的代理使用CGLIB代理 -->
+		<property name="proxyTargetClass" value="true"/>
+	</bean>
+	
+	<!-- Advisor切面配置：授权属性的切面 -->
+	<bean class="org.apache.shiro.spring.security.interceptor.AuthorizationAttributeSourceAdvisor">
+		<!-- 注入安全管理器 -->
+ 		<property name="securityManager" ref="securityManager"/>
+	</bean>
+	
+	<!-- 1。配置ehcache manager管理器对象:使用spring的工厂bean来提供 -->
+	<bean id="ehCacheManager" class="org.springframework.cache.ehcache.EhCacheManagerFactoryBean">
+		<!-- 注入ehcache的核心配置文件：配置缓存区域，如果不注入，默认就读取类路径下的ehcache.xml -->
+		<property name="configLocation" value="classpath:ehcache.xml"/>
+	</bean>
+	
+	<!-- 2。配置shiro的平台缓存管理器 -->
+	<!-- shiro缓存管理器:整合ehcache -->
+	<bean id="shiroCacheManager" class="org.apache.shiro.cache.ehcache.EhCacheManager">
+		<!-- 注入ehcache的缓存管理器 -->
+		<property name="cacheManager" ref="ehCacheManager"/>
+	</bean>
+	<!-- 3。 在原来的配置中：将缓存管理器注入给安全管理（略）-->
+	
+	<!-- spring整合ehcache -->
+	<!-- spring的平台缓存管理器注入ehcache -->
+	<bean id="cacheManager" class="org.springframework.cache.ehcache.EhCacheCacheManager">
+		<!-- 注入ehcache -->
+		<property name="cacheManager" ref="ehCacheManager"/>
+	</bean>
+	
+	<!-- 配置缓存注解驱动:注入spring的平台缓存管理器 -->
+	<cache:annotation-driven cache-manager="cacheManager"/>
+	
+	
+	
+
+</beans>
