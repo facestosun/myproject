@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app version="2.5" 
+	xmlns="http://java.sun.com/xml/ns/javaee" 
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" 
+	xsi:schemaLocation="http://java.sun.com/xml/ns/javaee 
+	http://java.sun.com/xml/ns/javaee/web-app_2_5.xsd">
+  <display-name>宅急送BOS</display-name>
+  <!-- spring配置文件位置 -->
+  <context-param>
+  	<param-name>contextConfigLocation</param-name>
+  	<param-value>classpath:applicationContext.xml</param-value>
+  </context-param>	
+  <!-- spring核心监听器 -->
+  <listener>
+  	<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
+  </listener>
+  <!-- 延迟EntityManager关闭 -->
+  <filter>
+  	<filter-name>openEntityManagerInViewFilter</filter-name>
+  	<filter-class>org.springframework.orm.jpa.support.OpenEntityManagerInViewFilter</filter-class>
+  </filter>
+  <filter-mapping>
+  	<filter-name>openEntityManagerInViewFilter</filter-name>
+  	<url-pattern>/*</url-pattern>
+  </filter-mapping>
+
+	<!-- shiro权限过滤器 -->
+	<filter>
+		<!-- 这里的 filter-name 要和 spring 的 applicationContext-shiro.xml 里的 org.apache.shiro.spring.web.ShiroFilterFactoryBean 
+			的 bean name 相同 
+			
+			具体过滤器：生命周期是spring管理，自动到spring容器中获取一个bean的名字叫filter-name的bean，该bean就是具体的过滤器
+			，如此，过滤器的生命周期交给了spring，而且，具备spring的特性了，IoC
+			-->
+		<filter-name>shiroFilter</filter-name>
+		<!-- spring的代理过滤器类：以前的过滤器 ,不是一个具体的过滤器-->
+		<filter-class>org.springframework.web.filter.DelegatingFilterProxy</filter-class>
+		<init-param>
+			<!-- 该值缺省为false,表示生命周期由SpringApplicationContext管理,设置为true则表示由ServletContainer管理 -->
+			<param-name>targetFilterLifecycle</param-name>
+			<param-value>true</param-value>
+		</init-param>
+	</filter>
+	<filter-mapping>
+		<filter-name>shiroFilter</filter-name>
+		<url-pattern>/*</url-pattern>
+	</filter-mapping>
+  
+  <!-- struts核心控制器 -->
+  <filter>
+  	<filter-name>struts2</filter-name>
+  	<filter-class>org.apache.struts2.dispatcher.ng.filter.StrutsPrepareAndExecuteFilter</filter-class>
+  </filter>
+  <filter-mapping>
+  	<filter-name>struts2</filter-name>
+  	<url-pattern>/*</url-pattern>
+  	<dispatcher>REQUEST</dispatcher>
+  	<dispatcher>FORWARD</dispatcher>
+  </filter-mapping>
+  <!-- 欢迎页面 -->
+  <welcome-file-list>
+    <welcome-file>index.jsp</welcome-file>
+  </welcome-file-list>
+  <!-- 异常处理页面 -->
+  <error-page>
+  	<exception-type>org.apache.shiro.authz.UnauthorizedException</exception-type>
+  	<location>/unauthorized-web.jsp</location>
+  </error-page>
+</web-app>

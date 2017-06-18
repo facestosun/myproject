@@ -1,0 +1,5 @@
+.gintignore
+.classpath
+.idea
+.project
+.settings

@@ -1,0 +1,47 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ehcache xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:noNamespaceSchemaLocation="../config/ehcache.xsd">
+	<!-- 硬盘上缓存的位置 ,临时目录，可以手动指定-->
+    <diskStore path="java.io.tmpdir"/>
+	<!-- 默认缓存区域 
+	maxElementsInMemory：内存中能容纳的最多的元素（对象）的个数
+	eternal：元素在缓存中是否永生，不会消亡。
+	timeToIdleSeconds：元素发呆多久给干掉（没人用她，没人甩他）
+	timeToLiveSeconds:元素能活多久。
+	maxElementsOnDisk：如果内存满了，会持久化到硬盘，硬盘上能容纳多少元素，位置diskStore决定
+	diskExpiryThreadIntervalSeconds：轮询的周期时间。检查时间
+	memoryStoreEvictionPolicy：缓存满了的策略：默认有三个策略：LRU（最近最少使用）。你可以设置为FIFO（先进先出）或是LFU（较少使用,截至到某时间，谁发呆的时间长）。 
+	-->
+    <defaultCache
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            maxElementsOnDisk="10000000"
+            diskExpiryThreadIntervalSeconds="120"
+            memoryStoreEvictionPolicy="LRU">
+        <persistence strategy="localTempSwap"/>
+    </defaultCache>
+    <!-- 配置一个自定义区域：放shiro数据 -->
+    <cache name="BosShiroCache"
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            maxElementsOnDisk="10000000"
+            diskExpiryThreadIntervalSeconds="120"
+            memoryStoreEvictionPolicy="LRU">
+        <persistence strategy="localTempSwap"/>
+    </cache>
+    <!-- 开辟一块空间，放置spring的缓存数据 -->
+    <cache name="MenuSpringCache"
+            maxElementsInMemory="10000"
+            eternal="false"
+            timeToIdleSeconds="120"
+            timeToLiveSeconds="120"
+            maxElementsOnDisk="10000000"
+            diskExpiryThreadIntervalSeconds="120"
+            memoryStoreEvictionPolicy="LRU">
+        <persistence strategy="localTempSwap"/>
+    </cache>
+    
+</ehcache>
