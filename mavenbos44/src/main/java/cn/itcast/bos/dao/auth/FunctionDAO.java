@@ -22,7 +22,7 @@ public interface FunctionDAO extends JpaRepository<Function, String>{
 	public List<Function> findMenuByUser(User user);
 	
 	//sql
-	@Query(value="SELECT * FROM t_auth_function t1 INNER JOIN t_auth_role_function t2 ON t1.id=t2.function_id INNER JOIN t_auth_user_role t3 ON t2.role_id=t3.role_id WHERE t1.generatemenu='1' AND t3.operator_id=? ORDER BY t1.zindex ASC",nativeQuery=true)
+	@Query(value="SELECT * FROM t_auth_function t1 INNER JOIN t_auth_role_function t2 ON t1.id=t2.function_id INNER JOIN t_auth_user_role t3 ON t2.role_id=t3.role_id WHERE t1.generatemenu='1' AND t3.operators_id=? ORDER BY t1.zindex ASC",nativeQuery=true)
 	public List<Function> findMenuByUserId(String userId);
 	
 	//查询所有的菜单
